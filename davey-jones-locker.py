@@ -51,10 +51,9 @@ personal_access_token = os.getenv('GITHUB_PERSONAL_TOKEN')
 g = Github(personal_access_token)
 
 # Check that we can access the github api and returns correct user
-try:
+try:   
     user = g.get_user()
-    if user.name == 'Wael':
-        print(user.name)
+    print(user.name)
 except ApiError as e:
     print(e)
 
@@ -135,8 +134,10 @@ def get_deadpool_content_from_repo(deadpools_df, repo_contents_object):
                         deadpools_content.append(pool_dict)
         return deadpools_content
 
-
-deadpools_content = get_deadpool_content_from_repo(deadpools_df, contents)
+if deadpools_df.empty==False:
+        deadpools_content = get_deadpool_content_from_repo(deadpools_df, contents)
+else:
+        print('There are no deadpools')
 
 
 # deadpools_content
@@ -159,15 +160,14 @@ def upload_content_to_repo(deadpools_content, new_repo_url):
                 except ApiError as e:
                         print(e)
                         
-                        
-upload_content_to_repo(deadpools_content, 'AstroWa3l/gh-testing')
 
+def delete_old_pools(repo, contents, deadpools_df):
+        for i in contents:
+                if i.name.replace('.md', '') in deadpools_df.hex.to_list():
+                        print(i.name)
+                        repo.delete_file(i.path, "Deleting deadpools", i.sha)
 
-# Delete the deadpool from the original repo
-
-for i in contents:
-	if i.name.replace('.md', '') in deadpools_df.hex.to_list():
-		print(i.name)
-		repo.delete_file(i.path, "Deleting deadpools", i.sha)
-
-
+if deadpools_df.empty==False:
+        upload_content_to_repo(deadpools_content, 'armada-alliance/davey-jones-locker')
+        # Delete the deadpool from the original repo if commit is successful
+        delete_old_pools(repo, contents, deadpools_df)
