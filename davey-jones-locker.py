@@ -14,15 +14,9 @@ load_dotenv()
 # if you need to know about chained assignments
 pd.options.mode.chained_assignment = None  # default='warn'
 
-# Because most of my data sets I have made can have up to 30+ columns and 20+ rows
-# code below will increase pandas defaults for max rows 
-# and columns that you can display in a Juptyer Notebook
-pd.options.display.max_columns = 60
-pd.options.display.max_rows = 1000
-
 
 # Get our block frost api key from the file .env
-api_key = os.getenv('BLOCKFROST_API_KEY')
+api_key = os.getenv('WAEL_BLOCKFROST_API_KEY')
 
 from blockfrost import BlockFrostApi, ApiError, ApiUrls
 
@@ -46,7 +40,7 @@ except ApiError as e:
 # Get our github api key from the file .env
 # Then check login to github
 
-personal_access_token = os.getenv('GITHUB_PERSONAL_TOKEN')
+personal_access_token = os.getenv('WAEL_PERSONAL_TOKEN')
 # using an access token
 g = Github(personal_access_token)
 

@@ -23,6 +23,9 @@ jobs:
       - name: Install Dependencies
         run: pip install -r requirements.txt
       - name: Main
+        env:
+          WAEL_BLOCKFROST_API_KEY: ${{ secrets.WAEL_BLOCKFROST_API_KEY }}
+          WAEL_PERSONAL_TOKEN: ${{ secrets.WAEL_PERSONAL_TOKEN }}
         run: python davey-jones-locker.py
       - name: Commit and Push Changes
         run: |
