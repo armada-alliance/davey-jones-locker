@@ -71,7 +71,7 @@ def get_stake_pool_data(hex_pool_id):
         for i in hex_pool_id:
                 try:
                         pool_data = api.pool(pool_id=i, return_type='pandas')
-                        pool_data_df = pool_data_df.append(pool_data)
+                        pool_data_df = pd.concat([pool_data_df,pool_data], axis=0, join='outer')
                 
                 except ApiError as e:
                         print(e)
@@ -84,8 +84,6 @@ def get_stake_pool_data(hex_pool_id):
 pool_data_df = get_stake_pool_data(stake_pools_no_extensions)
 
 
-# pool_data_df
-
 
 # Create deadpools dataframe
 
@@ -97,8 +95,10 @@ def get_deadpools(pool_data_df):
         deadpools_df = pd.DataFrame()
         
         for pool in range(len(pool_data_df)):
+
                 if len(pool_data_df.retirement[pool]) > 0:
-                        deadpools_df = deadpools_df.append(pool_data_df.iloc[pool,:])
+                        transposed_df = pd.DataFrame(pool_data_df.iloc[pool,:]).T
+                        deadpools_df = pd.concat([deadpools_df, transposed_df], axis=0, join='outer')
                         print('Pool Id of retiring pools is: {}'.format(pool_data_df.pool_id[pool]))
 
         return deadpools_df
@@ -117,15 +117,13 @@ def get_deadpool_content_from_repo(deadpools_df, repo_contents_object):
         
         deadpool_hex_ids = deadpools_df.hex.to_list()
 
-        deadpools_content = []
+        deadpools_content = pd.DataFrame()
         
         for i in repo_contents_object:
                 pool_dict = {}
                 if i.name.replace('.md', '') in deadpool_hex_ids:
-                        print(i.name)
-                        pool_dict['fileName'] = i.name
-                        pool_dict['fileContent'] = i.decoded_content
-                        deadpools_content.append(pool_dict)
+                        pool_dict[i.name] = i.decoded_content
+                        deadpools_content = pd.concat([deadpools_content, pd.Series(pool_dict)], axis=0, join='outer')
         return deadpools_content
 
 if deadpools_df.empty==False:
@@ -134,7 +132,8 @@ else:
         print('There are no deadpools')
 
 
-# deadpools_content
+deadpools_content.reset_index(inplace=True)
+deadpools_content.rename(columns={'index':'fileName', 0:'fileContent'}, inplace=True)
 
 
 # Upload the content to the new repo
