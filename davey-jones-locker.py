@@ -128,12 +128,10 @@ def get_deadpool_content_from_repo(deadpools_df, repo_contents_object):
 
 if deadpools_df.empty==False:
         deadpools_content = get_deadpool_content_from_repo(deadpools_df, contents)
+        deadpools_content.reset_index(inplace=True)
+        deadpools_content.rename(columns={'index':'fileName', 0:'fileContent'}, inplace=True)
 else:
         print('There are no deadpools')
-
-
-deadpools_content.reset_index(inplace=True)
-deadpools_content.rename(columns={'index':'fileName', 0:'fileContent'}, inplace=True)
 
 
 # Upload the content to the new repo
