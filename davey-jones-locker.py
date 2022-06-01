@@ -85,80 +85,80 @@ pool_data_df = get_stake_pool_data(stake_pools_no_extensions)
 
 
 
-# Create deadpools dataframe
+# Create retiring dataframe
 
-def get_deadpools(pool_data_df):
+def get_retiring(pool_data_df):
         
         if len(pool_data_df) == 0:
                 return "Please enter a non empty dataframe"
         
-        deadpools_df = pd.DataFrame()
+        retiring_df = pd.DataFrame()
         
         for pool in range(len(pool_data_df)):
 
                 if len(pool_data_df.retirement[pool]) > 0:
                         transposed_df = pd.DataFrame(pool_data_df.iloc[pool,:]).T
-                        deadpools_df = pd.concat([deadpools_df, transposed_df], axis=0, join='outer')
+                        retiring_df = pd.concat([retiring_df, transposed_df], axis=0, join='outer')
                         print('Pool Id of retiring pools is: {}'.format(pool_data_df.pool_id[pool]))
 
-        return deadpools_df
+        return retiring_df
 
 
-deadpools_df = get_deadpools(pool_data_df)
+retiring_df = get_retiring(pool_data_df)
 
 
 
 # Now we need to get the content from the github repo matching the hex ids
 
-def get_deadpool_content_from_repo(deadpools_df, repo_contents_object):
+def get_retiring_content_from_repo(retiring_df, repo_contents_object):
 
-        if len(deadpools_df) == 0:
+        if len(retiring_df) == 0:
                 return "Please enter a non empty dataframe"
         
-        deadpool_hex_ids = deadpools_df.hex.to_list()
+        retiring_hex_ids = retiring_df.hex.to_list()
 
-        deadpools_content = pd.DataFrame()
+        retiring_content = pd.DataFrame()
         
         for i in repo_contents_object:
                 pool_dict = {}
-                if i.name.replace('.md', '') in deadpool_hex_ids:
+                if i.name.replace('.md', '') in retiring_hex_ids:
                         pool_dict[i.name] = i.decoded_content
-                        deadpools_content = pd.concat([deadpools_content, pd.Series(pool_dict)], axis=0, join='outer')
-        return deadpools_content
+                        retiring_content = pd.concat([retiring_content, pd.Series(pool_dict)], axis=0, join='outer')
+        return retiring_content
 
-if deadpools_df.empty==False:
-        deadpools_content = get_deadpool_content_from_repo(deadpools_df, contents)
-        deadpools_content.reset_index(inplace=True)
-        deadpools_content.rename(columns={'index':'fileName', 0:'fileContent'}, inplace=True)
+if retiring_df.empty==False:
+        retiring_content = get_retiring_content_from_repo(retiring_df, contents)
+        retiring_content.reset_index(inplace=True)
+        retiring_content.rename(columns={'index':'fileName', 0:'fileContent'}, inplace=True)
 else:
-        print('There are no deadpools')
+        print('There are no retiring')
 
 
 # Upload the content to the new repo
 
-def upload_content_to_repo(deadpools_content, new_repo_url):
+def upload_content_to_repo(retiring_content, new_repo_url):
         
         # Check for content
-        if len(deadpools_content) == 0:
+        if len(retiring_content) == 0:
                 return "Please enter a non empty list of content"
         
         # Create a new repo git object
         new_repo = g.get_repo(new_repo_url)
         
-        for content in range(len(deadpools_content)):
+        for content in range(len(retiring_content)):
                 try:
-                        new_repo.create_file(deadpools_content[content]['fileName'], 'Uploading deadpools', deadpools_content[content]['fileContent'])
+                        new_repo.create_file(retiring_content['fileName'][content], 'Uploading retiring', retiring_content['fileContent'][content])
                 except ApiError as e:
                         print(e)
                         
 
-def delete_old_pools(repo, contents, deadpools_df):
+def delete_old_pools(repo, contents, retiring_df):
         for i in contents:
-                if i.name.replace('.md', '') in deadpools_df.hex.to_list():
+                if i.name.replace('.md', '') in retiring_df.hex.to_list():
                         print(i.name)
-                        repo.delete_file(i.path, "Deleting deadpools", i.sha)
+                        repo.delete_file(i.path, "Deleting retiring", i.sha)
 
-if deadpools_df.empty==False:
-        upload_content_to_repo(deadpools_content, 'armada-alliance/davey-jones-locker')
-        # Delete the deadpool from the original repo if commit is successful
-        delete_old_pools(repo, contents, deadpools_df)
+if retiring_df.empty==False:
+        upload_content_to_repo(retiring_content, 'armada-alliance/davey-jones-locker')
+        # Delete the retiring from the original repo if commit is successful
+        delete_old_pools(repo, contents, retiring_df)
