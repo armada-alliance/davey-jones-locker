@@ -15,18 +15,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Setup Python
         uses: actions/setup-python@v3
         with:
           python-version: '3.9'
-          cache: 'pip'
+
+      - name: Clear pip cache
+        run: pip cache purge
+
       - name: Install Dependencies
-        run: pip install -r requirements.txt
+        run: |
+          # Pin specific versions to prevent compatibility issues
+          pip install numpy==1.23.5 pandas==1.5.3
+          pip install -r requirements.txt
+
       - name: Main
         env:
           WAEL_BLOCKFROST_API_KEY: ${{ secrets.WAEL_BLOCKFROST_API_KEY }}
           WAEL_PERSONAL_TOKEN: ${{ secrets.WAEL_PERSONAL_TOKEN }}
         run: python davey-jones-locker.py
+
       - name: Commit and Push Changes
         run: |
           git config --local user.email "actions@github.com"
